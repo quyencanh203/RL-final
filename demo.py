@@ -5,7 +5,6 @@ import cv2
 from models.torch_model import QNetwork
 from models.final_torch_model import FinalQNetwork
 from models.MAAC import MAAC
-from models.resdqn import resQNetwork
 import torch
 
 
