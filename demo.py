@@ -4,7 +4,7 @@ import os
 import cv2
 from models.torch_model import QNetwork
 from models.final_torch_model import FinalQNetwork
-from models.MAAC import MAAC
+from models.mymodel import ActorCriticModel
 import torch
 
 
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     frames = []
     
     
-    blue_q_network0 = MAAC(
+    blue_q_network0 = ActorCriticModel(
     env.observation_space("blue_0").shape, env.action_space("blue_0").n
     )
     blue_q_network0.load_state_dict(
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     # pretrain_1
     frames = []
     env.reset()
-    blue_q_network = MAAC(
+    blue_q_network = ActorCriticModel(
     env.observation_space("blue_0").shape, env.action_space("blue_0").n
     )
     blue_q_network.load_state_dict(
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     # pretrained policies (pretrain_final)
     frames = []
     env.reset()
-    blue_q_network = MAAC(
+    blue_q_network = ActorCriticModel(
     env.observation_space("blue_0").shape, env.action_space("blue_0").n
     )
     blue_q_network.load_state_dict(

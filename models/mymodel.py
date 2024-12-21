@@ -21,7 +21,7 @@ class CNNFeatureExtractor(nn.Module):
         return x.flatten(start_dim=1)
 
 
-class MAAC(nn.Module):
+class ActorCriticModel(nn.Module):
     def __init__(self, observation_shape, action_shape):
         super().__init__()
         self.feature_extractor = CNNFeatureExtractor(observation_shape[-1])
