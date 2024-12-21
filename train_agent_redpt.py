@@ -118,7 +118,7 @@ if __name__ == "__main__":
     replay_buffer = ReplayBuffer(args.replay_buffer_size)
 
     train_model(env, blue_q_network, red_q_network, optimizer, replay_buffer, device, args)
-    torch.save(blue_q_network.state_dict(), "pretrains/bluemaac.pt")
+    torch.save(blue_q_network.state_dict(), "pretrains/blue.pt")
     print("Saved model!")
     env.close()
 

@@ -21,7 +21,7 @@ def eval():
         env.observation_space("red_0").shape, env.action_space("red_0").n
     )
     q_network.load_state_dict(
-        torch.load("pretrains/bluemaac.pt", weights_only=True, map_location=device)
+        torch.load("pretrains/blue.pt", weights_only=True, map_location=device)
     )
     q_network.to(device)
     

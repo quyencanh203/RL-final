@@ -21,7 +21,7 @@ if __name__ == "__main__":
     env.observation_space("blue_0").shape, env.action_space("blue_0").n
     )
     blue_q_network0.load_state_dict(
-        torch.load("pretrains/bluemaac.pt", weights_only=True, map_location=device)
+        torch.load("pretrains/blue.pt", weights_only=True, map_location=device)
     )
     # random policies
     env.reset()
