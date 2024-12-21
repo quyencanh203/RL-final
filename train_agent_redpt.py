@@ -8,7 +8,7 @@ from magent2.environments import battle_v4
 from Buffers import ReplayBuffer
 from models.torch_model import QNetwork
 from models.final_torch_model import FinalQNetwork
-from models.mymodel import ActorCriticModel
+from models.mymodel import my_QNetwork
 
 def train_model(env, blue_q_network, red_q_network, optimizer, replay_buffer, device, args):
     epsilon = args.epsilon_start
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     red_q_network.load_state_dict(state_dict)
     red_q_network.eval()
 
-    blue_q_network = ActorCriticModel(env.observation_space("blue_0").shape, env.action_space("blue_0").n).to(device)
+    blue_q_network = my_QNetwork(env.observation_space("blue_0").shape, env.action_space("blue_0").n).to(device)
     optimizer = optim.Adam(blue_q_network.parameters(), lr=args.learning_rate)
 
     replay_buffer = ReplayBuffer(args.replay_buffer_size)

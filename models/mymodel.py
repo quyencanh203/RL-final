@@ -1,60 +1,52 @@
 import torch
 import torch.nn as nn
 
-
-class CNNFeatureExtractor(nn.Module):
-    def __init__(self, input_channels):
+class my_QNetwork(nn.Module):
+    def __init__(self, observation_shape, action_shape, padding=1):
         super().__init__()
+
+        input_channels = observation_shape[-1]
+
         self.cnn = nn.Sequential(
-            nn.Conv2d(input_channels, 32, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(input_channels, input_channels, kernel_size=3, padding=padding),
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(input_channels, input_channels * 2, kernel_size=3, padding=padding),
             nn.ReLU(),
-            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(input_channels * 2, input_channels, kernel_size=1, padding=0),
             nn.ReLU(),
+            nn.Conv2d(input_channels, input_channels, kernel_size=3, padding=padding),
+            nn.ReLU(),
+            nn.Conv2d(input_channels, input_channels * 2, kernel_size=3, padding=padding),
+            nn.ReLU(),
+            nn.Conv2d(input_channels * 2, input_channels, kernel_size=1, padding=0),
+            nn.ReLU()
         )
-        self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
+
+        # Định nghĩa các lớp fully connected
+        self.fc = nn.Sequential(
+            nn.Linear(self._get_flatten_dim(observation_shape), 256),
+            nn.ReLU(),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, action_shape)
+        )
+
+    def _get_flatten_dim(self, observation_shape):
+        """Giúp tính toán số lượng tham số sau khi flatten (sau các lớp Conv2d)."""
+        dummy_input = torch.randn(observation_shape).permute(2, 0, 1)  # Chuyển đổi thành [C, H, W]
+        dummy_output = self.cnn(dummy_input)
+        return dummy_output.numel()  # Trả về số lượng phần tử trong tensor sau khi qua CNN
 
     def forward(self, x):
+        assert len(x.shape) >= 3, "Only support input with at least 3 dimensions"
+
+        # Tiến hành chập qua CNN
         x = self.cnn(x)
-        x = self.global_pool(x)
-        return x.flatten(start_dim=1)
 
+        # Flatten output từ CNN
+        batch_size = x.shape[0] if len(x.shape) > 2 else 1
+        x = x.view(batch_size, -1)
 
-class ActorCriticModel(nn.Module):
-    def __init__(self, observation_shape, action_shape):
-        super().__init__()
-        self.feature_extractor = CNNFeatureExtractor(observation_shape[-1])
+        # Đưa output vào các lớp fully connected
+        return self.fc(x)
 
-        flatten_dim = 128  # Sau khi global pool
-        self.actor = nn.Sequential(
-            nn.Linear(flatten_dim, 256),
-            nn.ReLU(),
-            nn.Dropout(p=0.3),
-            nn.Linear(256, action_shape),
-        )
-
-        self.critic = nn.Sequential(
-            nn.Linear(flatten_dim + action_shape, 256),
-            nn.ReLU(),
-            nn.Dropout(p=0.3),
-            nn.Linear(256, 1),
-        )
-
-    def forward(self, observation, return_logits=False):
-        assert len(observation.shape) == 4, "Input must have shape (batch_size, channels, height, width)"
-        x = self.feature_extractor(observation)
-        action_probs = self.actor(x)
-        if return_logits:
-            return action_probs
-        return torch.softmax(action_probs, dim=-1)
-
-    def evaluate(self, observation, action):
-        x = self.feature_extractor(observation)
-        action_probs = self.actor(x)
-
-        action_one_hot = torch.nn.functional.one_hot(action, num_classes=action_probs.shape[1]).float()
-        action_one_hot = action_one_hot.to(observation.device)
-
-        state_action_value = self.critic(torch.cat([x, action_one_hot], dim=1))
-        return state_action_value, action_probs
