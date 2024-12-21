@@ -1,7 +1,7 @@
 from magent2.environments import battle_v4
 from models.torch_model import QNetwork
 from models.final_torch_model import FinalQNetwork
-from models.mymodel import ActorCriticModel
+from models.mymodel import my_QNetwork
 import torch
 import numpy as np
 
@@ -17,7 +17,7 @@ def eval():
     device = "cuda" if torch.cuda.is_available() else device
     # blue policy
     
-    q_network = ActorCriticModel(
+    q_network = my_QNetwork(
         env.observation_space("red_0").shape, env.action_space("red_0").n
     )
     q_network.load_state_dict(
